@@ -1,0 +1,57 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.associations": {
+      "**/client/**/*.js": "javascriptreact",
+      "**/*.jsx": "javascriptreact",
+      "**/*.mjs": "javascript",
+      "**/*.ejs": "html"
+    },
+    "files.exclude": {
+      "**/node_modules": false,
+      "**/__pycache__": true,
+      "**/.mypy_cache": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.venv": true,
+      "**/__pycache__": true,
+      "**/.mypy_cache": true
+    },
+    "editor.formatOnSaveMode": "file",
+    "[postcss]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[javascriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[html]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.formatOnSave": true,
+      "editor.tabSize": 4
+    },
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.pythonPath": "~/.pyenv/versions/3.10.0/bin/python",
+    "python.analysis.extraPaths": ["./server/.venv/lib/python3.10/site-packages"],
+    "python.analysis.typeCheckingMode": "basic"
+  }
+}
