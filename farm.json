@@ -1,0 +1,6 @@
+{
+  "name": "rvc",
+  "scripts": {
+    "export": "/home/gradywoodruff/miniconda3/envs/rvc/bin/python tools/export_model.py"
+  }
+}

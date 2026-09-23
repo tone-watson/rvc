@@ -1,7 +1,12 @@
 {
   "folders": [
     {
+      "name": "rvc",
       "path": "."
+    },
+    {
+      "name": "notes",
+      "path": "/home/gradywoodruff/documents/notes/code/rvc"
     }
   ],
   "settings": {
