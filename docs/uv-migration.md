@@ -3,9 +3,13 @@
 ## Status and scope
 
 Migration began on 2026-09-30. **The permanent uv environment is installed and
-the isolated comparisons pass.** The manual launchers now select it. Normal
-operator acceptance and observation remain; keep the original Conda environment
-intact until those are complete and retirement is explicitly approved.
+the isolated comparisons pass.** RVC 1.1.0 and CLI 3.16.0 are released, and
+the operator confirmed a successful uv launch with the RTX 4090 on port 7861.
+On 2026-10-01 UTC, the owner waived further manual conversion/training checks:
+there is no planned use or prepared test workflow, and any future issues will
+be addressed when the application is used. Further manual acceptance is not an
+outstanding migration step. Keep the original Conda environment for rollback
+until retirement is separately approved.
 
 This checkout is `/srv/farm/code/rvc`, the manually launched RVC WebUI and
 training/export tools. No installed standalone RVC systemd service was found in
@@ -205,8 +209,11 @@ and the validation evidence manifest for inputs, scripts, logs and exact hashes.
 Tracked application source and the voice input retain their captured baseline
 hashes. Model/index assets were only read through individual links; their old
 timestamps remain intact and current hashes are recorded, but pre-run hashes
-were not captured for those large files. Normal operator use still needs
-acceptance; the temporary UI was closed after testing.
+were not captured for those large files. The temporary validation UI was
+closed after testing. The later operator launch succeeded; manual conversion
+and training acceptance were waived by the owner, not performed. This decision
+is recorded in
+[manual-acceptance.json](/srv/farm/.uv/migrations/2026-09-30-rvc/manual-acceptance.json).
 
 Validation must use isolated source/config/log/model copies and disposable
 outputs. Importing `infer-web.py` has startup side effects: it recreates `TEMP`,
@@ -225,10 +232,10 @@ remove a durable lock based only on age. An abruptly killed wrapper can leave a
 reservation intentionally; investigate its recorded owner and descendants before
 any manual recovery. Resident services are not stopped for validation.
 
-Retain Conda through accepted comparisons and representative operator use,
-including an ordinary standalone training/resume workflow if this checkout is
-used for training. No net disk saving is claimed while the rollback environment
-and migration artifacts remain installed.
+The owner has closed further manual testing for this migration. Conda remains
+available for rollback; removing it is a separate retirement decision. No net
+disk saving is claimed while the rollback environment and migration artifacts
+remain installed.
 
 ## Rollback
 
