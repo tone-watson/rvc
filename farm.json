@@ -8,5 +8,5 @@
   "scripts": {
     "export": "/srv/farm/code/rvc/.venv/bin/python tools/export_model.py"
   },
-  "version": "1.1.0"
+  "version": "1.1.1"
 }
