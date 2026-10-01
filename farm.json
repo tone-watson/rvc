@@ -1,7 +1,12 @@
 {
   "name": "rvc",
+  "release": {
+    "commands": [
+      "sh scripts/runtime.sh check"
+    ]
+  },
   "scripts": {
-    "export": "/home/gradywoodruff/miniconda3/envs/rvc/bin/python tools/export_model.py"
+    "export": "/srv/farm/code/rvc/.venv/bin/python tools/export_model.py"
   },
   "version": "1.0.0"
 }

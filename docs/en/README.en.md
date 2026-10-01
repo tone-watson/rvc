@@ -1,3 +1,7 @@
+> **Farm Linux server:** This checkout uses a project-local `.venv` and locked uv runtime.
+> See the [Farm uv guide](../uv-migration.md) for launch commands, migration validation status and Conda rollback.
+> `run.sh` launches only; it does not install dependencies or download models. The upstream platform instructions below are reference material.
+
 <div align="center">
 
 <h1>Retrieval-based-Voice-Conversion-WebUI</h1>
@@ -102,9 +106,12 @@ for AMD graphics cards on Linux (ROCm):
 ```
 
 ------
-Mac users can install dependencies via `run.sh`:
+On the Farm Linux server, installation and launch are separate. Check the
+[Farm uv guide](../uv-migration.md) for migration status and the operating sequence:
 ```bash
-sh ./run.sh
+cd /srv/farm/code/rvc
+sh scripts/runtime.sh sync
+./run.sh
 ```
 
 ## Preparation of other Pre-models
@@ -190,9 +197,9 @@ Download and extract file `RVC-beta.7z`, then follow the steps below according t
 #### For Windows users
 Double click `go-web.bat`
 #### For MacOS users
-```bash
-sh ./run.sh
-```
+Follow the startup instructions supplied with the upstream macOS bundle. This
+Farm checkout's `run.sh` is a Linux server launcher; see the
+[Farm uv guide](../uv-migration.md).
 ### For Intel IPEX users (Linux Only)
 ```bash
 source /opt/intel/oneapi/setvars.sh

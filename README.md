@@ -1,3 +1,7 @@
+> **Farm Linux 服务器：** 本仓库使用项目内的 `.venv` 和锁定的 uv 环境。
+> 运行方式、迁移验证状态和 Conda 回退步骤见 [Farm uv 指南](docs/uv-migration.md)。
+> `run.sh` 只负责启动，不会安装依赖或下载模型。下方上游跨平台说明仅供参考。
+
 <div align="center">
 
 <h1>Retrieval-based-Voice-Conversion-WebUI</h1>
@@ -101,10 +105,12 @@ poetry env use "path to your python.exe"
 poetry run pip install -r requirments.txt
 ```
 
-### MacOS
-可以通过 `run.sh` 来安装依赖
+### Farm Linux 服务器
+依赖安装和启动分开进行；迁移验证状态及操作顺序见 [Farm uv 指南](docs/uv-migration.md)。
 ```bash
-sh ./run.sh
+cd /srv/farm/code/rvc
+sh scripts/runtime.sh sync
+./run.sh
 ```
 
 ## 其他预模型准备
@@ -188,9 +194,7 @@ poetry run python infer-web.py
 #### Windows 用户
 双击`go-web.bat`
 #### MacOS 用户
-```bash
-sh ./run.sh
-```
+请按上游 macOS 发布包中的说明启动。本 Farm 分支的 `run.sh` 是 Linux 服务器启动脚本；详见 [Farm uv 指南](docs/uv-migration.md)。
 ### 对于需要使用IPEX技术的I卡用户(仅Linux)
 ```bash
 source /opt/intel/oneapi/setvars.sh
