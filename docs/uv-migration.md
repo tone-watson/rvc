@@ -8,8 +8,8 @@ the operator confirmed a successful uv launch with the RTX 4090 on port 7861.
 On 2026-10-01 UTC, the owner waived further manual conversion/training checks:
 there is no planned use or prepared test workflow, and any future issues will
 be addressed when the application is used. Further manual acceptance is not an
-outstanding migration step. Keep the original Conda environment for rollback
-until retirement is separately approved.
+outstanding migration step. The old Conda prefix was subsequently retired on
+2026-10-02 after the approved consumer/process audit.
 
 This checkout is `/srv/farm/code/rvc`, the manually launched RVC WebUI and
 training/export tools. No installed standalone RVC systemd service was found in
@@ -28,7 +28,7 @@ restart belongs to this migration.
 - Managed Python: `/srv/farm/.uv/python/cpython-3.11.14-linux-x86_64-gnu`
 - Shared hardlinked package cache: `/srv/farm/.uv/cache`
 - Baseline and dependency provenance: `/srv/farm/.uv/migrations/2026-09-30-rvc`
-- Rollback interpreter: `/home/gradywoodruff/miniconda3/envs/rvc/bin/python`
+- Retirement result and preserved provenance: [/srv/farm/.uv/migrations/2026-10-02-retirement/result.json](/srv/farm/.uv/migrations/2026-10-02-retirement/result.json)
 
 The lock targets Farm's Linux x86_64 server. Create the environment at its final
 path; do not copy it between repositories or machines. This follows the
@@ -232,32 +232,25 @@ remove a durable lock based only on age. An abruptly killed wrapper can leave a
 reservation intentionally; investigate its recorded owner and descendants before
 any manual recovery. Resident services are not stopped for validation.
 
-The owner has closed further manual testing for this migration. Conda remains
-available for rollback; removing it is a separate retirement decision. No net
-disk saving is claimed while the rollback environment and migration artifacts
-remain installed.
+The owner has closed further manual testing for this migration. The old Conda
+prefix has been retired; models, logs, configuration and migration evidence are
+preserved. Further functional testing remains deferred as the owner requested.
 
-## Rollback
+## Recovery after Conda retirement
 
-Stop only the standalone RVC process you launched, after its current work has
-finished, then select the original interpreter explicitly:
-
-```sh
-cd /srv/farm/code/rvc
-FARM_RVC_PYTHON=/home/gradywoodruff/miniconda3/envs/rvc/bin/python ./run.sh
-```
-
-The override also carries through the WebUI's default child Python selection.
-`farm run export` uses its declared `.venv` path, so export rollback is a direct
-invocation of the retained interpreter:
+The old RVC Conda interpreter no longer exists; its
+[retirement record](/srv/farm/.uv/migrations/2026-10-02-retirement/result.json) preserves the audit and provenance. Stop only a
+standalone RVC process you launched, after its work finishes, before repairing
+the pinned environment:
 
 ```sh
 cd /srv/farm/code/rvc
-/home/gradywoodruff/miniconda3/envs/rvc/bin/python tools/export_model.py --help
+sh scripts/runtime.sh sync
+sh scripts/runtime.sh check
 ```
 
-Replace `--help` with the normal export arguments when needed. Do not restore old
-model/log/config snapshots over newer user work to undo an interpreter change.
-Conda retirement requires a separate consumer/process audit and an explicit
-retirement decision. No service restart or privileged command is needed for
-this manual-launch rollback.
+Unset a stale `FARM_RVC_PYTHON` override to use the project `.venv`; an explicit
+override must name an existing, validated interpreter. `./run.sh` and
+`farm run export` use the maintained uv runtime. Preserve newer model, log and
+configuration files. There is no standalone service to restart, and this
+documentation update requires no build or privileged action.
