@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v1.1.2 - 2026-10-02
+### CHANGED:
+- Document uv recovery after Conda retirement
+
+
 ## v1.1.1 - 2026-10-01
 ### CHANGED:
 - Record owner waiver of RVC manual acceptance testing
