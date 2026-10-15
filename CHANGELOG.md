@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v1.1.3 - 2026-10-15
+### CHANGED:
+- Remove explanatory code comments while preserving documentation and directives
+
+
 ## v1.1.2 - 2026-10-02
 ### CHANGED:
 - Document uv recovery after Conda retirement
