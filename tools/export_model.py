@@ -18,7 +18,7 @@ def find_latest_pth(model_name: str) -> Path | None:
     if not candidates:
         return None
 
-    # Sort by epoch number (e.g., charm-v2_e180_s3600.pth)
+
     def get_epoch(p: Path) -> int:
         name = p.stem
         if "_e" in name:
@@ -47,9 +47,9 @@ def list_models():
     """List available trained models."""
     models = set()
 
-    # Check weights directory
+
     for pth in WEIGHTS_DIR.glob("*.pth"):
-        name = pth.stem.split("_e")[0]  # Remove epoch suffix
+        name = pth.stem.split("_e")[0]
         models.add(name)
 
     if models:
@@ -64,7 +64,7 @@ def export_model(model_name: str, output_name: str = None):
     """Export model files to ~/models/rvc/voice/<name>/"""
     output_name = output_name or model_name
 
-    # Find files
+
     pth_file = find_latest_pth(model_name)
     index_file = find_index(model_name)
 
@@ -78,11 +78,11 @@ def export_model(model_name: str, output_name: str = None):
         print(f"Warning: No .index file found for '{model_name}'")
         print("You may need to run 'Train feature index' in the UI first.")
 
-    # Create output directory
+
     output_dir = OUTPUT_BASE / output_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copy files
+
     print(f"Exporting '{model_name}' to {output_dir}/")
 
     dest_pth = output_dir / f"{output_name}.pth"

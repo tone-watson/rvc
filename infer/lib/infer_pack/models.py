@@ -40,7 +40,7 @@ class TextEncoder(nn.Module):
         self.emb_phone = nn.Linear(in_channels, hidden_channels)
         self.lrelu = nn.LeakyReLU(0.1, inplace=True)
         if f0 == True:
-            self.emb_pitch = nn.Embedding(256, hidden_channels)  # pitch 256
+            self.emb_pitch = nn.Embedding(256, hidden_channels)
         self.encoder = attentions.Encoder(
             hidden_channels,
             filter_channels,
@@ -62,9 +62,9 @@ class TextEncoder(nn.Module):
             x = self.emb_phone(phone)
         else:
             x = self.emb_phone(phone) + self.emb_pitch(pitch)
-        x = x * math.sqrt(self.hidden_channels)  # [b, t, h]
+        x = x * math.sqrt(self.hidden_channels)
         x = self.lrelu(x)
-        x = torch.transpose(x, 1, -1)  # [b, h, t]
+        x = torch.transpose(x, 1, -1)
         x_mask = torch.unsqueeze(commons.sequence_mask(lengths, x.size(2)), 1).to(
             x.dtype
         )
@@ -283,10 +283,10 @@ class Generator(torch.nn.Module):
     def __prepare_scriptable__(self):
         for l in self.ups:
             for hook in l._forward_pre_hooks.values():
-                # The hook we want to remove is an instance of WeightNorm class, so
-                # normally we would do `if isinstance(...)` but this class is not accessible
-                # because of shadowing, so we check the module name directly.
-                # https://github.com/pytorch/pytorch/blob/be0ca00c5ce260eb5bcec3237357f7a30cc08983/torch/nn/utils/__init__.py#L3
+
+
+
+
                 if (
                     hook.__module__ == "torch.nn.utils.weight_norm"
                     and hook.__class__.__name__ == "WeightNorm"
@@ -343,10 +343,10 @@ class SineGen(torch.nn.Module):
         self.voiced_threshold = voiced_threshold
 
     def _f02uv(self, f0):
-        # generate uv signal
+
         uv = torch.ones_like(f0)
         uv = uv * (f0 > self.voiced_threshold)
-        if uv.device.type == "privateuseone":  # for DirectML
+        if uv.device.type == "privateuseone":
             uv = uv.float()
         return uv
     
@@ -420,29 +420,29 @@ class SourceModuleHnNSF(torch.nn.Module):
         self.sine_amp = sine_amp
         self.noise_std = add_noise_std
         self.is_half = is_half
-        # to produce sine waveforms
+
         self.l_sin_gen = SineGen(
             sampling_rate, harmonic_num, sine_amp, add_noise_std, voiced_threshod
         )
 
-        # to merge source harmonics into a single excitation
+
         self.l_linear = torch.nn.Linear(harmonic_num + 1, 1)
         self.l_tanh = torch.nn.Tanh()
-        # self.ddtype:int = -1
+
 
     def forward(self, x: torch.Tensor, upp: int = 1):
-        # if self.ddtype ==-1:
-        #     self.ddtype = self.l_linear.weight.dtype
+
+
         sine_wavs, uv, _ = self.l_sin_gen(x, upp)
-        # print(x.dtype,sine_wavs.dtype,self.l_linear.weight.dtype)
-        # if self.is_half:
-        #     sine_wavs = sine_wavs.half()
-        # sine_merge = self.l_tanh(self.l_linear(sine_wavs.to(x)))
-        # print(sine_wavs.dtype,self.ddtype)
-        # if sine_wavs.dtype != self.l_linear.weight.dtype:
+
+
+
+
+
+
         sine_wavs = sine_wavs.to(dtype=self.l_linear.weight.dtype)
         sine_merge = self.l_tanh(self.l_linear(sine_wavs))
-        return sine_merge, None, None  # noise, uv
+        return sine_merge, None, None
 
 
 class GeneratorNSF(torch.nn.Module):
@@ -538,8 +538,8 @@ class GeneratorNSF(torch.nn.Module):
         x = self.conv_pre(x)
         if g is not None:
             x = x + self.cond(g)
-        # torch.jit.script() does not support direct indexing of torch modules
-        # That's why I wrote this
+
+
         for i, (ups, noise_convs) in enumerate(zip(self.ups, self.noise_convs)):
             if i < self.num_upsamples:
                 x = F.leaky_relu(x, self.lrelu_slope)
@@ -554,8 +554,8 @@ class GeneratorNSF(torch.nn.Module):
                             xs = resblock(x)
                         else:
                             xs += resblock(x)
-                # This assertion cannot be ignored! \
-                # If ignored, it will cause torch.jit.script() compilation errors
+
+
                 assert isinstance(xs, torch.Tensor)
                 x = xs / self.num_kernels
         x = F.leaky_relu(x)
@@ -573,10 +573,10 @@ class GeneratorNSF(torch.nn.Module):
     def __prepare_scriptable__(self):
         for l in self.ups:
             for hook in l._forward_pre_hooks.values():
-                # The hook we want to remove is an instance of WeightNorm class, so
-                # normally we would do `if isinstance(...)` but this class is not accessible
-                # because of shadowing, so we check the module name directly.
-                # https://github.com/pytorch/pytorch/blob/be0ca00c5ce260eb5bcec3237357f7a30cc08983/torch/nn/utils/__init__.py#L3
+
+
+
+
                 if (
                     hook.__module__ == "torch.nn.utils.weight_norm"
                     and hook.__class__.__name__ == "WeightNorm"
@@ -641,7 +641,7 @@ class SynthesizerTrnMs256NSFsid(nn.Module):
         self.upsample_kernel_sizes = upsample_kernel_sizes
         self.segment_size = segment_size
         self.gin_channels = gin_channels
-        # self.hop_length = hop_length#
+
         self.spk_embed_dim = spk_embed_dim
         self.enc_p = TextEncoder(
             256,
@@ -693,10 +693,10 @@ class SynthesizerTrnMs256NSFsid(nn.Module):
 
     def __prepare_scriptable__(self):
         for hook in self.dec._forward_pre_hooks.values():
-            # The hook we want to remove is an instance of WeightNorm class, so
-            # normally we would do `if isinstance(...)` but this class is not accessible
-            # because of shadowing, so we check the module name directly.
-            # https://github.com/pytorch/pytorch/blob/be0ca00c5ce260eb5bcec3237357f7a30cc08983/torch/nn/utils/__init__.py#L3
+
+
+
+
             if (
                 hook.__module__ == "torch.nn.utils.weight_norm"
                 and hook.__class__.__name__ == "WeightNorm"
@@ -727,18 +727,18 @@ class SynthesizerTrnMs256NSFsid(nn.Module):
         y: torch.Tensor,
         y_lengths: torch.Tensor,
         ds: Optional[torch.Tensor] = None,
-    ):  # 这里ds是id，[bs,1]
-        # print(1,pitch.shape)#[bs,t]
-        g = self.emb_g(ds).unsqueeze(-1)  # [b, 256, 1]##1是t，广播的
+    ):
+
+        g = self.emb_g(ds).unsqueeze(-1)
         m_p, logs_p, x_mask = self.enc_p(phone, pitch, phone_lengths)
         z, m_q, logs_q, y_mask = self.enc_q(y, y_lengths, g=g)
         z_p = self.flow(z, y_mask, g=g)
         z_slice, ids_slice = commons.rand_slice_segments(
             z, y_lengths, self.segment_size
         )
-        # print(-1,pitchf.shape,ids_slice,self.segment_size,self.hop_length,self.segment_size//self.hop_length)
+
         pitchf = commons.slice_segments2(pitchf, ids_slice, self.segment_size)
-        # print(-2,pitchf.shape,z_slice.shape)
+
         o = self.dec(z_slice, pitchf, g=g)
         return o, ids_slice, x_mask, y_mask, (z, z_p, m_p, logs_p, m_q, logs_q)
 
@@ -873,7 +873,7 @@ class SynthesizerTrnMs256NSFsid_nono(nn.Module):
         self.upsample_kernel_sizes = upsample_kernel_sizes
         self.segment_size = segment_size
         self.gin_channels = gin_channels
-        # self.hop_length = hop_length#
+
         self.spk_embed_dim = spk_embed_dim
         self.enc_p = TextEncoder(
             256,
@@ -924,10 +924,10 @@ class SynthesizerTrnMs256NSFsid_nono(nn.Module):
 
     def __prepare_scriptable__(self):
         for hook in self.dec._forward_pre_hooks.values():
-            # The hook we want to remove is an instance of WeightNorm class, so
-            # normally we would do `if isinstance(...)` but this class is not accessible
-            # because of shadowing, so we check the module name directly.
-            # https://github.com/pytorch/pytorch/blob/be0ca00c5ce260eb5bcec3237357f7a30cc08983/torch/nn/utils/__init__.py#L3
+
+
+
+
             if (
                 hook.__module__ == "torch.nn.utils.weight_norm"
                 and hook.__class__.__name__ == "WeightNorm"
@@ -949,8 +949,8 @@ class SynthesizerTrnMs256NSFsid_nono(nn.Module):
         return self
 
     @torch.jit.ignore
-    def forward(self, phone, phone_lengths, y, y_lengths, ds):  # 这里ds是id，[bs,1]
-        g = self.emb_g(ds).unsqueeze(-1)  # [b, 256, 1]##1是t，广播的
+    def forward(self, phone, phone_lengths, y, y_lengths, ds):
+        g = self.emb_g(ds).unsqueeze(-1)
         m_p, logs_p, x_mask = self.enc_p(phone, None, phone_lengths)
         z, m_q, logs_q, y_mask = self.enc_q(y, y_lengths, g=g)
         z_p = self.flow(z, y_mask, g=g)
@@ -1053,7 +1053,7 @@ class MultiPeriodDiscriminator(torch.nn.Module):
     def __init__(self, use_spectral_norm=False):
         super(MultiPeriodDiscriminator, self).__init__()
         periods = [2, 3, 5, 7, 11, 17]
-        # periods = [3, 5, 7, 11, 17, 23, 37]
+
 
         discs = [DiscriminatorS(use_spectral_norm=use_spectral_norm)]
         discs = discs + [
@@ -1062,15 +1062,15 @@ class MultiPeriodDiscriminator(torch.nn.Module):
         self.discriminators = nn.ModuleList(discs)
 
     def forward(self, y, y_hat):
-        y_d_rs = []  #
+        y_d_rs = []
         y_d_gs = []
         fmap_rs = []
         fmap_gs = []
         for i, d in enumerate(self.discriminators):
             y_d_r, fmap_r = d(y)
             y_d_g, fmap_g = d(y_hat)
-            # for j in range(len(fmap_r)):
-            #     print(i,j,y.shape,y_hat.shape,fmap_r[j].shape,fmap_g[j].shape)
+
+
             y_d_rs.append(y_d_r)
             y_d_gs.append(y_d_g)
             fmap_rs.append(fmap_r)
@@ -1082,7 +1082,7 @@ class MultiPeriodDiscriminator(torch.nn.Module):
 class MultiPeriodDiscriminatorV2(torch.nn.Module):
     def __init__(self, use_spectral_norm=False):
         super(MultiPeriodDiscriminatorV2, self).__init__()
-        # periods = [2, 3, 5, 7, 11, 17]
+
         periods = [2, 3, 5, 7, 11, 17, 23, 37]
 
         discs = [DiscriminatorS(use_spectral_norm=use_spectral_norm)]
@@ -1092,15 +1092,15 @@ class MultiPeriodDiscriminatorV2(torch.nn.Module):
         self.discriminators = nn.ModuleList(discs)
 
     def forward(self, y, y_hat):
-        y_d_rs = []  #
+        y_d_rs = []
         y_d_gs = []
         fmap_rs = []
         fmap_gs = []
         for i, d in enumerate(self.discriminators):
             y_d_r, fmap_r = d(y)
             y_d_g, fmap_g = d(y_hat)
-            # for j in range(len(fmap_r)):
-            #     print(i,j,y.shape,y_hat.shape,fmap_r[j].shape,fmap_g[j].shape)
+
+
             y_d_rs.append(y_d_r)
             y_d_gs.append(y_d_g)
             fmap_rs.append(fmap_r)
@@ -1199,9 +1199,9 @@ class DiscriminatorP(torch.nn.Module):
     def forward(self, x):
         fmap = []
 
-        # 1d to 2d
+
         b, c, t = x.shape
-        if t % self.period != 0:  # pad first
+        if t % self.period != 0:
             n_pad = self.period - (t % self.period)
             if has_xpu and x.dtype == torch.bfloat16:
                 x = F.pad(x.to(dtype=torch.float16), (0, n_pad), "reflect").to(

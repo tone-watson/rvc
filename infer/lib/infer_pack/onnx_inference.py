@@ -26,7 +26,7 @@ class ContentVec:
 
     def forward(self, wav):
         feats = wav
-        if feats.ndim == 2:  # double channels
+        if feats.ndim == 2:
             feats = feats.mean(-1)
         assert feats.ndim == 1, feats.ndim
         feats = np.expand_dims(np.expand_dims(feats, 0), 0)

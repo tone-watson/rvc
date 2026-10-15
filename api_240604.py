@@ -18,11 +18,11 @@ import uvicorn
 import logging
 from multiprocessing import Queue, Process, cpu_count, freeze_support
 
-# Initialize the logger
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Define FastAPI app
+
 app = FastAPI()
 
 class GUIConfig:
@@ -32,7 +32,7 @@ class GUIConfig:
         self.pitch: int = 0
         self.formant: float = 0.0
         self.sr_type: str = "sr_model"
-        self.block_time: float = 0.25  # s
+        self.block_time: float = 0.25
         self.threhold: int = -60
         self.crossfade_time: float = 0.05
         self.extra_time: float = 2.5
@@ -90,11 +90,11 @@ class Harvest(Process):
 class AudioAPI:
     def __init__(self) -> None:
         self.gui_config = GUIConfig()
-        self.config = None  # Initialize Config object as None
+        self.config = None
         self.flag_vc = False
         self.function = "vc"
         self.delay_time = 0
-        self.rvc = None  # Initialize RVC object as None
+        self.rvc = None
         self.inp_q = None
         self.opt_q = None
         self.n_cpu = min(cpu_count(), 8)
@@ -310,7 +310,7 @@ class AudioAPI:
         self.input_wav[: -self.block_frame] = self.input_wav[self.block_frame :].clone()
         self.input_wav[-indata.shape[0] :] = torch.from_numpy(indata).to(self.config.device)
         self.input_wav_res[: -self.block_frame_16k] = self.input_wav_res[self.block_frame_16k :].clone()
-        # input noise reduction and resampling
+
         if self.gui_config.I_noise_reduce:
             self.input_wav_denoise[: -self.block_frame] = self.input_wav_denoise[self.block_frame :].clone()
             input_wav = self.input_wav[-self.sola_buffer_frame - self.block_frame :]
@@ -326,7 +326,7 @@ class AudioAPI:
             self.input_wav_res[-160 * (indata.shape[0] // self.zc + 1) :] = (
                 self.resampler(self.input_wav[-indata.shape[0] - 2 * self.zc :])[160:]
             )
-        # infer
+
         if self.function == "vc":
             infer_wav = self.rvc.infer(
                 self.input_wav_res,
@@ -341,12 +341,12 @@ class AudioAPI:
             infer_wav = self.input_wav_denoise[self.extra_frame :].clone()
         else:
             infer_wav = self.input_wav[self.extra_frame :].clone()
-        # output noise reduction
+
         if self.gui_config.O_noise_reduce and self.function == "vc":
             self.output_buffer[: -self.block_frame] = self.output_buffer[self.block_frame :].clone()
             self.output_buffer[-self.block_frame :] = infer_wav[-self.block_frame :]
             infer_wav = self.tg(infer_wav.unsqueeze(0), self.output_buffer.unsqueeze(0)).squeeze(0)
-        # volume envelop mixing
+
         if self.gui_config.rms_mix_rate < 1 and self.function == "vc":
             if self.gui_config.I_noise_reduce:
                 input_wav = self.input_wav_denoise[self.extra_frame :]
@@ -380,7 +380,7 @@ class AudioAPI:
             infer_wav *= torch.pow(
                 rms1 / rms2, torch.tensor(1 - self.gui_config.rms_mix_rate)
             )
-        # SOLA algorithm from https://github.com/yxlllc/DDSP-SVC
+
         conv_input = infer_wav[None, None, : self.sola_buffer_frame + self.sola_search_frame]
         cor_nom = F.conv1d(conv_input, self.sola_buffer[None, None, :])
         cor_den = torch.sqrt(

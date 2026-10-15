@@ -62,12 +62,12 @@ outPath = (
 os.makedirs(outPath, exist_ok=True)
 
 
-# wave must be 16k, hop_size=320
+
 def readwave(wav_path, normalize=False):
     wav, sr = sf.read(wav_path)
     assert sr == 16000
     feats = torch.from_numpy(wav).float()
-    if feats.dim() == 2:  # double channels
+    if feats.dim() == 2:
         feats = feats.mean(-1)
     assert feats.dim() == 1, feats.dim()
     if normalize:
@@ -77,9 +77,9 @@ def readwave(wav_path, normalize=False):
     return feats
 
 
-# HuBERT model
+
 printt("load model(s) from {}".format(model_path))
-# if hubert model is exist
+
 if os.access(model_path, os.F_OK) == False:
     printt(
         "Error: Extracting is shut down because %s does not exist, you may download it from https://huggingface.co/lj1995/VoiceConversionWebUI/tree/main"
@@ -99,7 +99,7 @@ if is_half:
 model.eval()
 
 todo = sorted(list(os.listdir(wavPath)))[i_part::n_part]
-n = max(1, len(todo) // 10)  # 最多打印十条
+n = max(1, len(todo) // 10)
 if len(todo) == 0:
     printt("no-feature-todo")
 else:
@@ -122,7 +122,7 @@ else:
                         else feats.to(device)
                     ),
                     "padding_mask": padding_mask.to(device),
-                    "output_layer": 9 if version == "v1" else 12,  # layer 9
+                    "output_layer": 9 if version == "v1" else 12,
                 }
                 with torch.no_grad():
                     logits = model.extract_features(**inputs)

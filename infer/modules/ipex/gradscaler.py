@@ -18,14 +18,14 @@ def _unscale_grads_(
     per_device_inv_scale = _MultiDeviceReplicator(inv_scale)
     per_device_found_inf = _MultiDeviceReplicator(found_inf)
 
-    # To set up _amp_foreach_non_finite_check_and_unscale_, split grads by device and dtype.
-    # There could be hundreds of grads, so we'd like to iterate through them just once.
-    # However, we don't know their devices or dtypes in advance.
 
-    # https://stackoverflow.com/questions/5029934/defaultdict-of-defaultdict
-    # Google says mypy struggles with defaultdicts type annotations.
+
+
+
+
+
     per_device_and_dtype_grads = defaultdict(lambda: defaultdict(list))  # type: ignore[var-annotated]
-    # sync grad to master weight
+
     if hasattr(optimizer, "sync_grad"):
         optimizer.sync_grad()
     with torch.no_grad():
@@ -36,17 +36,17 @@ def _unscale_grads_(
                 if (not allow_fp16) and param.grad.dtype == torch.float16:
                     raise ValueError("Attempting to unscale FP16 gradients.")
                 if param.grad.is_sparse:
-                    # is_coalesced() == False means the sparse grad has values with duplicate indices.
-                    # coalesce() deduplicates indices and adds all values that have the same index.
-                    # For scaled fp16 values, there's a good chance coalescing will cause overflow,
-                    # so we should check the coalesced _values().
+
+
+
+
                     if param.grad.dtype is torch.float16:
                         param.grad = param.grad.coalesce()
                     to_unscale = param.grad._values()
                 else:
                     to_unscale = param.grad
 
-                # -: is there a way to split by device and dtype without appending in the inner loop?
+
                 to_unscale = to_unscale.to("cpu")
                 per_device_and_dtype_grads[to_unscale.device][to_unscale.dtype].append(
                     to_unscale
@@ -100,7 +100,7 @@ def unscale_(self, optimizer):
     elif optimizer_state["stage"] is OptState.STEPPED:
         raise RuntimeError("unscale_() is being called after step().")
 
-    # FP32 division can be imprecise for certain compile options, so we carry out the reciprocal in FP64.
+
     assert self._scale is not None
     inv_scale = (
         self._scale.to("cpu").double().reciprocal().float().to(self._scale.device)
@@ -135,7 +135,7 @@ def update(self, new_scale=None):
     _scale, _growth_tracker = self._check_scale_growth_tracker("update")
 
     if new_scale is not None:
-        # Accept a new user-defined scale.
+
         if isinstance(new_scale, float):
             self._scale.fill_(new_scale)  # type: ignore[union-attr]
         else:
@@ -145,8 +145,8 @@ def update(self, new_scale=None):
             assert new_scale.requires_grad is False, reason
             self._scale.copy_(new_scale)  # type: ignore[union-attr]
     else:
-        # Consume shared inf/nan data collected from optimizers to update the scale.
-        # If all found_inf tensors are on the same device as self._scale, this operation is asynchronous.
+
+
         found_infs = [
             found_inf.to(device="cpu", non_blocking=True)
             for state in self._per_optimizer_states.values()
@@ -175,7 +175,7 @@ def update(self, new_scale=None):
 
         _scale = _scale.to(to_device)
         _growth_tracker = _growth_tracker.to(to_device)
-    # To prepare for next iteration, clear the data collected from optimizers this iteration.
+
     self._per_optimizer_states = defaultdict(_refresh_per_optimizer_state)
 
 

@@ -35,9 +35,9 @@ class TextAudioLoaderMultiNSFsid(torch.utils.data.Dataset):
         """
         Filter text & store spec lengths
         """
-        # Store spectrogram lengths for Bucketing
-        # wav_length ~= file_size / (wav_channels * Bytes per dim) = file_size / (1 * 2)
-        # spec_length = wav_length // hop_length
+
+
+
         audiopaths_and_text_new = []
         lengths = []
         for audiopath, text, pitch, pitchf, dv in self.audiopaths_and_text:
@@ -52,7 +52,7 @@ class TextAudioLoaderMultiNSFsid(torch.utils.data.Dataset):
         return sid
 
     def get_audio_text_pair(self, audiopath_and_text):
-        # separate filename and text
+
         file = audiopath_and_text[0]
         phone = audiopath_and_text[1]
         pitch = audiopath_and_text[2]
@@ -65,10 +65,10 @@ class TextAudioLoaderMultiNSFsid(torch.utils.data.Dataset):
 
         len_phone = phone.size()[0]
         len_spec = spec.size()[-1]
-        # print(123,phone.shape,pitch.shape,spec.shape)
+
         if len_phone != len_spec:
             len_min = min(len_phone, len_spec)
-            # amor
+
             len_wav = len_min * self.hop_length
 
             spec = spec[:, :len_min]
@@ -85,8 +85,8 @@ class TextAudioLoaderMultiNSFsid(torch.utils.data.Dataset):
         phone = np.repeat(phone, 2, axis=0)
         pitch = np.load(pitch)
         pitchf = np.load(pitchf)
-        n_num = min(phone.shape[0], 900)  # DistributedBucketSampler
-        # print(234,phone.shape,pitch.shape)
+        n_num = min(phone.shape[0], 900)
+
         phone = phone[:n_num, :]
         pitch = pitch[:n_num]
         pitchf = pitchf[:n_num]
@@ -104,8 +104,8 @@ class TextAudioLoaderMultiNSFsid(torch.utils.data.Dataset):
                 )
             )
         audio_norm = audio
-        #        audio_norm = audio / self.max_wav_value
-        #        audio_norm = audio / np.abs(audio).max()
+
+
 
         audio_norm = audio_norm.unsqueeze(0)
         spec_filename = filename.replace(".wav", ".spec.pt")
@@ -156,7 +156,7 @@ class TextAudioCollateMultiNSFsid:
         ------
         batch: [text_normalized, spec_normalized, wav_normalized]
         """
-        # Right zero-pad all one-hot text sequences to max input length
+
         _, ids_sorted_decreasing = torch.sort(
             torch.LongTensor([x[0].size(1) for x in batch]), dim=0, descending=True
         )
@@ -174,13 +174,13 @@ class TextAudioCollateMultiNSFsid:
         phone_lengths = torch.LongTensor(len(batch))
         phone_padded = torch.FloatTensor(
             len(batch), max_phone_len, batch[0][2].shape[1]
-        )  # (spec, wav, phone, pitch)
+        )
         pitch_padded = torch.LongTensor(len(batch), max_phone_len)
         pitchf_padded = torch.FloatTensor(len(batch), max_phone_len)
         phone_padded.zero_()
         pitch_padded.zero_()
         pitchf_padded.zero_()
-        # dv = torch.FloatTensor(len(batch), 256)#gin=256
+
         sid = torch.LongTensor(len(batch))
 
         for i in range(len(ids_sorted_decreasing)):
@@ -203,7 +203,7 @@ class TextAudioCollateMultiNSFsid:
             pitchf = row[4]
             pitchf_padded[i, : pitchf.size(0)] = pitchf
 
-            # dv[i] = row[5]
+
             sid[i] = row[5]
 
         return (
@@ -215,7 +215,7 @@ class TextAudioCollateMultiNSFsid:
             spec_lengths,
             wave_padded,
             wave_lengths,
-            # dv
+
             sid,
         )
 
@@ -243,9 +243,9 @@ class TextAudioLoader(torch.utils.data.Dataset):
         """
         Filter text & store spec lengths
         """
-        # Store spectrogram lengths for Bucketing
-        # wav_length ~= file_size / (wav_channels * Bytes per dim) = file_size / (1 * 2)
-        # spec_length = wav_length // hop_length
+
+
+
         audiopaths_and_text_new = []
         lengths = []
         for audiopath, text, dv in self.audiopaths_and_text:
@@ -260,7 +260,7 @@ class TextAudioLoader(torch.utils.data.Dataset):
         return sid
 
     def get_audio_text_pair(self, audiopath_and_text):
-        # separate filename and text
+
         file = audiopath_and_text[0]
         phone = audiopath_and_text[1]
         dv = audiopath_and_text[2]
@@ -282,7 +282,7 @@ class TextAudioLoader(torch.utils.data.Dataset):
     def get_labels(self, phone):
         phone = np.load(phone)
         phone = np.repeat(phone, 2, axis=0)
-        n_num = min(phone.shape[0], 900)  # DistributedBucketSampler
+        n_num = min(phone.shape[0], 900)
         phone = phone[:n_num, :]
         phone = torch.FloatTensor(phone)
         return phone
@@ -296,8 +296,8 @@ class TextAudioLoader(torch.utils.data.Dataset):
                 )
             )
         audio_norm = audio
-        #        audio_norm = audio / self.max_wav_value
-        #        audio_norm = audio / np.abs(audio).max()
+
+
 
         audio_norm = audio_norm.unsqueeze(0)
         spec_filename = filename.replace(".wav", ".spec.pt")
@@ -348,7 +348,7 @@ class TextAudioCollate:
         ------
         batch: [text_normalized, spec_normalized, wav_normalized]
         """
-        # Right zero-pad all one-hot text sequences to max input length
+
         _, ids_sorted_decreasing = torch.sort(
             torch.LongTensor([x[0].size(1) for x in batch]), dim=0, descending=True
         )
@@ -434,7 +434,7 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
             if idx_bucket != -1:
                 buckets[idx_bucket].append(i)
 
-        for i in range(len(buckets) - 1, -1, -1):  #
+        for i in range(len(buckets) - 1, -1, -1):
             if len(buckets[i]) == 0:
                 buckets.pop(i)
                 self.boundaries.pop(i + 1)
@@ -450,7 +450,7 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
         return buckets, num_samples_per_bucket
 
     def __iter__(self):
-        # deterministically shuffle based on epoch
+
         g = torch.Generator()
         g.manual_seed(self.epoch)
 
@@ -469,7 +469,7 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
             ids_bucket = indices[i]
             num_samples_bucket = self.num_samples_per_bucket[i]
 
-            # add extra samples to make it evenly divisible
+
             rem = num_samples_bucket - len_bucket
             ids_bucket = (
                 ids_bucket
@@ -477,10 +477,10 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
                 + ids_bucket[: (rem % len_bucket)]
             )
 
-            # subsample
+
             ids_bucket = ids_bucket[self.rank :: self.num_replicas]
 
-            # batching
+
             for j in range(len(ids_bucket) // self.batch_size):
                 batch = [
                     bucket[idx]

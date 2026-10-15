@@ -244,7 +244,7 @@ class MultiHeadAttention(nn.Module):
         value: torch.Tensor,
         mask: Optional[torch.Tensor] = None,
     ):
-        # reshape [b, d, t] -> [b, n_h, t, d_k]
+
         b, d, t_s = key.size()
         t_t = query.size(2)
         query = query.view(b, self.n_heads, self.k_channels, t_t).transpose(2, 3)
@@ -276,7 +276,7 @@ class MultiHeadAttention(nn.Module):
                     .tril(self.block_length)
                 )
                 scores = scores.masked_fill(block_mask == 0, -1e4)
-        p_attn = F.softmax(scores, dim=-1)  # [b, n_h, t_t, t_s]
+        p_attn = F.softmax(scores, dim=-1)
         p_attn = self.drop(p_attn)
         output = torch.matmul(p_attn, value)
         if self.window_size is not None:
@@ -289,7 +289,7 @@ class MultiHeadAttention(nn.Module):
             )
         output = (
             output.transpose(2, 3).contiguous().view(b, d, t_t)
-        )  # [b, n_h, t_t, d_k] -> [b, d, t_t]
+        )
         return output, p_attn
 
     def _matmul_with_relative_values(self, x, y):
@@ -312,14 +312,14 @@ class MultiHeadAttention(nn.Module):
 
     def _get_relative_embeddings(self, relative_embeddings, length):
         max_relative_position = 2 * self.window_size + 1
-        # Pad first before slice to avoid using cond ops.
+
 
         pad_length = torch.clamp(length - (self.window_size + 1), min=0)
         slice_start_position = torch.clamp((self.window_size + 1) - length, min=0)
         slice_end_position = slice_start_position + 2 * length - 1
         padded_relative_embeddings = F.pad(
             relative_embeddings,
-            # commons.convert_pad_shape([[0, 0], [pad_length, pad_length], [0, 0]]),
+
             [0, 0, pad_length, pad_length, 0, 0],
         )
         used_relative_embeddings = padded_relative_embeddings[
@@ -333,21 +333,21 @@ class MultiHeadAttention(nn.Module):
         ret: [b, h, l, l]
         """
         batch, heads, length, _ = x.size()
-        # Concat columns of pad to shift from relative to absolute indexing.
+
         x = F.pad(
             x,
-            #   commons.convert_pad_shape([[0, 0], [0, 0], [0, 0], [0, 1]])
+
             [0, 1, 0, 0, 0, 0, 0, 0],
         )
 
-        # Concat extra elements so to add up to shape (len+1, 2*len-1).
+
         x_flat = x.view([batch, heads, length * 2 * length])
         x_flat = F.pad(
             x_flat,
             [0, length - 1, 0, 0, 0, 0],
         )
 
-        # Reshape and slice out the padded elements.
+
         x_final = x_flat.view([batch, heads, length + 1, 2 * length - 1])[
             :, :, :length, length - 1 :
         ]
@@ -359,13 +359,13 @@ class MultiHeadAttention(nn.Module):
         ret: [b, h, l, 2*l-1]
         """
         batch, heads, length, _ = x.size()
-        # padd along column
+
         x = F.pad(
             x,
             [0, length - 1, 0, 0, 0, 0, 0, 0],
         )
         x_flat = x.view([batch, heads, length*length + length * (length - 1)])
-        # add 0's in the beginning that will skew the elements after reshape
+
         x_flat = F.pad(
             x_flat,
             [length, 0, 0, 0, 0, 0],
@@ -405,10 +405,10 @@ class FFN(nn.Module):
         self.activation = activation
         self.causal = causal
         self.is_activation = True if activation == "gelu" else False
-        # if causal:
-        #     self.padding = self._causal_padding
-        # else:
-        #     self.padding = self._same_padding
+
+
+
+
 
         self.conv_1 = nn.Conv1d(in_channels, filter_channels, kernel_size)
         self.conv_2 = nn.Conv1d(filter_channels, out_channels, kernel_size)
@@ -437,10 +437,10 @@ class FFN(nn.Module):
             return x
         pad_l = self.kernel_size - 1
         pad_r = 0
-        # padding = [[0, 0], [0, 0], [pad_l, pad_r]]
+
         x = F.pad(
             x,
-            #   commons.convert_pad_shape(padding)
+
             [pad_l, pad_r, 0, 0, 0, 0],
         )
         return x
@@ -450,10 +450,10 @@ class FFN(nn.Module):
             return x
         pad_l = (self.kernel_size - 1) // 2
         pad_r = self.kernel_size // 2
-        # padding = [[0, 0], [0, 0], [pad_l, pad_r]]
+
         x = F.pad(
             x,
-            #   commons.convert_pad_shape(padding)
+
             [pad_l, pad_r, 0, 0, 0, 0],
         )
         return x

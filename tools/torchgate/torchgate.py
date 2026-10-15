@@ -47,26 +47,26 @@ class TorchGate(torch.nn.Module):
     ):
         super().__init__()
 
-        # General Params
+
         self.sr = sr
         self.nonstationary = nonstationary
         assert 0.0 <= prop_decrease <= 1.0
         self.prop_decrease = prop_decrease
 
-        # STFT Params
+
         self.n_fft = n_fft
         self.win_length = self.n_fft if win_length is None else win_length
         self.hop_length = self.win_length // 4 if hop_length is None else hop_length
 
-        # Stationary Params
+
         self.n_std_thresh_stationary = n_std_thresh_stationary
 
-        # Non-Stationary Params
+
         self.temp_coeff_nonstationary = temp_coeff_nonstationary
         self.n_movemean_nonstationary = n_movemean_nonstationary
         self.n_thresh_nonstationary = n_thresh_nonstationary
 
-        # Smooth Mask Params
+
         self.freq_mask_smooth_hz = freq_mask_smooth_hz
         self.time_mask_smooth_ms = time_mask_smooth_ms
         self.register_buffer("smoothing_filter", self._generate_mask_smoothing_filter())
@@ -164,13 +164,13 @@ class TorchGate(torch.nn.Module):
         else:
             XN_db = X_db
 
-        # calculate mean and standard deviation along the frequency axis
+
         std_freq_noise, mean_freq_noise = torch.std_mean(XN_db, dim=-1)
 
-        # compute noise threshold
+
         noise_thresh = mean_freq_noise + std_freq_noise * self.n_std_thresh_stationary
 
-        # create binary mask by thresholding the spectrogram
+
         sig_mask = X_db > noise_thresh.unsqueeze(2)
         return sig_mask
 
@@ -199,7 +199,7 @@ class TorchGate(torch.nn.Module):
             / self.n_movemean_nonstationary
         )
 
-        # Compute slowness ratio and apply temperature sigmoid
+
         slowness_ratio = (X_abs - X_smoothed) / (X_smoothed + 1e-6)
         sig_mask = temperature_sigmoid(
             slowness_ratio, self.n_thresh_nonstationary, self.temp_coeff_nonstationary
@@ -222,7 +222,7 @@ class TorchGate(torch.nn.Module):
             torch.Tensor: The denoised audio signal, with the same shape as the input signal.
         """
 
-        # Compute short-time Fourier transform (STFT)
+
         if "privateuseone" in str(x.device):
             if not hasattr(self, "stft"):
                 self.stft = STFT(
@@ -244,16 +244,16 @@ class TorchGate(torch.nn.Module):
                 window=torch.hann_window(self.win_length).to(x.device),
             )
 
-        # Compute signal mask based on stationary or nonstationary assumptions
+
         if self.nonstationary:
             sig_mask = self._nonstationary_mask(X.abs())
         else:
             sig_mask = self._stationary_mask(amp_to_db(X), xn)
 
-        # Propagate decrease in signal power
+
         sig_mask = self.prop_decrease * (sig_mask.float() - 1.0) + 1.0
 
-        # Smooth signal mask with 2D convolution
+
         if self.smoothing_filter is not None:
             sig_mask = conv2d(
                 sig_mask.unsqueeze(1),
@@ -261,10 +261,10 @@ class TorchGate(torch.nn.Module):
                 padding="same",
             )
 
-        # Apply signal mask to STFT magnitude and phase components
+
         Y = X * sig_mask.squeeze(1)
 
-        # Inverse STFT to obtain time-domain signal
+
         if "privateuseone" in str(Y.device):
             y = self.stft.inverse(Y, phase)
         else:

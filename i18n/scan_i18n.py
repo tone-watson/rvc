@@ -22,9 +22,9 @@ def extract_i18n_strings(node):
     return i18n_strings
 
 
-# scan the directory for all .py files (recursively)
-# for each file, parse the code into an AST
-# for each AST, extract the i18n strings
+
+
+
 
 strings = []
 for filename in glob.iglob("**/*.py", recursive=True):
@@ -54,7 +54,7 @@ with open(standard_file, "r", encoding="utf-8") as f:
     standard_data = json.load(f, object_pairs_hook=OrderedDict)
 standard_keys = set(standard_data.keys())
 
-# Define the standard file name
+
 unused_keys = standard_keys - code_keys
 print("Unused keys:", len(unused_keys))
 for unused_key in unused_keys:
@@ -69,7 +69,7 @@ code_keys_dict = OrderedDict()
 for s in strings:
     code_keys_dict[s] = s
 
-# write back
+
 with open(standard_file, "w", encoding="utf-8") as f:
     json.dump(code_keys_dict, f, ensure_ascii=False, indent=4, sort_keys=True)
     f.write("\n")

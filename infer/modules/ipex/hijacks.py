@@ -306,7 +306,7 @@ def ipex_hijacks():
         lambda orig_func, input, *args, **kwargs: input.device != torch.device("cpu"),
     )
 
-    # Functions with dtype errors:
+
     CondFunc(
         "torch.nn.modules.GroupNorm.forward",
         lambda orig_func, self, input: orig_func(
@@ -338,7 +338,7 @@ def ipex_hijacks():
         and input.dtype != weight.data.dtype,
     )
 
-    # Diffusers Float64 (ARC GPUs doesn't support double or Float64):
+
     if not torch.xpu.has_fp64_dtype():
         CondFunc(
             "torch.from_numpy",
@@ -346,14 +346,14 @@ def ipex_hijacks():
             lambda orig_func, ndarray: ndarray.dtype == float,
         )
 
-    # Broken functions when torch.cuda.is_available is True:
+
     CondFunc(
         "torch.utils.data.dataloader._BaseDataLoaderIter.__init__",
         lambda orig_func, *args, **kwargs: ipex_no_cuda(orig_func, *args, **kwargs),
         lambda orig_func, *args, **kwargs: True,
     )
 
-    # Functions that make compile mad with CondFunc:
+
     torch.utils.data.dataloader._MultiProcessingDataLoaderIter._shutdown_workers = (
         _shutdown_workers
     )

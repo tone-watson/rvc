@@ -96,12 +96,12 @@ if __name__ == "__main__":
 
     i18n = I18nAuto()
 
-    # device = rvc_for_realtime.config.device
-    # device = torch.device(
-    #     "cuda"
-    #     if torch.cuda.is_available()
-    #     else ("mps" if torch.backends.mps.is_available() else "cpu")
-    # )
+
+
+
+
+
+
     current_dir = os.getcwd()
     inp_q = Queue()
     opt_q = Queue()
@@ -118,7 +118,7 @@ if __name__ == "__main__":
             self.pitch: int = 0
             self.formant=0.0
             self.sr_type: str = "sr_model"
-            self.block_time: float = 0.25  # s
+            self.block_time: float = 0.25
             self.threhold: int = -60
             self.crossfade_time: float = 0.05
             self.extra_time: float = 2.5
@@ -222,7 +222,7 @@ if __name__ == "__main__":
 
         def launcher(self):
             data = self.load()
-            self.config.use_jit = False  # data.get("use_jit", self.config.use_jit)
+            self.config.use_jit = False
             sg.theme("LightBlue3")
             layout = [
                 [
@@ -430,17 +430,17 @@ if __name__ == "__main__":
                                     enable_events=True,
                                 ),
                             ],
-                            # [
-                            #     sg.Text("设备延迟"),
-                            #     sg.Slider(
-                            #         range=(0, 1),
-                            #         key="device_latency",
-                            #         resolution=0.001,
-                            #         orientation="h",
-                            #         default_value=data.get("device_latency", 0.1),
-                            #         enable_events=True,
-                            #     ),
-                            # ],
+
+
+
+
+
+
+
+
+
+
+
                             [
                                 sg.Text(i18n("harvest进程数")),
                                 sg.Slider(
@@ -493,14 +493,14 @@ if __name__ == "__main__":
                                     default=data.get("use_pv", False),
                                     enable_events=True,
                                 ),
-                                # sg.Checkbox(
-                                #     "JIT加速",
-                                #     default=self.config.use_jit,
-                                #     key="use_jit",
-                                #     enable_events=False,
-                                # ),
+
+
+
+
+
+
                             ],
-                            # [sg.Text("注：首次使用JIT加速时，会出现卡顿，\n      并伴随一些噪音，但这是正常现象！")],
+
                         ],
                         title=i18n("性能设置"),
                     ),
@@ -581,12 +581,12 @@ if __name__ == "__main__":
                             "pitch": values["pitch"],
                             "rms_mix_rate": values["rms_mix_rate"],
                             "index_rate": values["index_rate"],
-                            # "device_latency": values["device_latency"],
+
                             "block_time": values["block_time"],
                             "crossfade_length": values["crossfade_length"],
                             "extra_time": values["extra_time"],
                             "n_cpu": values["n_cpu"],
-                            # "use_jit": values["use_jit"],
+
                             "use_jit": False,
                             "use_pv": values["use_pv"],
                             "f0method": ["pm", "harvest", "crepe", "rmvpe", "fcpe"][
@@ -614,7 +614,7 @@ if __name__ == "__main__":
                         self.window["delay_time"].update(
                             int(np.round(self.delay_time * 1000))
                         )
-                # Parameter hot update
+
                 if event == "threhold":
                     self.gui_config.threhold = values["threhold"]
                 elif event == "pitch":
@@ -649,7 +649,7 @@ if __name__ == "__main__":
                 elif event in ["vc", "im"]:
                     self.function = event
                 elif event == "stop_vc" or event != "start_vc":
-                    # Other parameters do not support hot update
+
                     self.stop_stream()
 
         def set_values(self, values):
@@ -667,8 +667,8 @@ if __name__ == "__main__":
                 sg.popup(i18n("index文件路径不可包含中文"))
                 return False
             self.set_devices(values["sg_input_device"], values["sg_output_device"])
-            self.config.use_jit = False  # values["use_jit"]
-            # self.device_latency = values["device_latency"]
+            self.config.use_jit = False
+
             self.gui_config.sg_hostapi = values["sg_hostapi"]
             self.gui_config.sg_wasapi_exclusive = values["sg_wasapi_exclusive"]
             self.gui_config.sg_input_device = values["sg_input_device"]
@@ -877,7 +877,7 @@ if __name__ == "__main__":
             self.input_wav_res[: -self.block_frame_16k] = self.input_wav_res[
                 self.block_frame_16k :
             ].clone()
-            # input noise reduction and resampling
+
             if self.gui_config.I_noise_reduce:
                 self.input_wav_denoise[: -self.block_frame] = self.input_wav_denoise[
                     self.block_frame :
@@ -903,7 +903,7 @@ if __name__ == "__main__":
                         160:
                     ]
                 )
-            # infer
+
             if self.function == "vc":
                 infer_wav = self.rvc.infer(
                     self.input_wav_res,
@@ -918,7 +918,7 @@ if __name__ == "__main__":
                 infer_wav = self.input_wav_denoise[self.extra_frame :].clone()
             else:
                 infer_wav = self.input_wav[self.extra_frame :].clone()
-            # output noise reduction
+
             if self.gui_config.O_noise_reduce and self.function == "vc":
                 self.output_buffer[: -self.block_frame] = self.output_buffer[
                     self.block_frame :
@@ -927,7 +927,7 @@ if __name__ == "__main__":
                 infer_wav = self.tg(
                     infer_wav.unsqueeze(0), self.output_buffer.unsqueeze(0)
                 ).squeeze(0)
-            # volume envelop mixing
+
             if self.gui_config.rms_mix_rate < 1 and self.function == "vc":
                 if self.gui_config.I_noise_reduce:
                     input_wav = self.input_wav_denoise[self.extra_frame :]
@@ -961,7 +961,7 @@ if __name__ == "__main__":
                 infer_wav *= torch.pow(
                     rms1 / rms2, torch.tensor(1 - self.gui_config.rms_mix_rate)
                 )
-            # SOLA algorithm from https://github.com/yxlllc/DDSP-SVC
+
             conv_input = infer_wav[
                 None, None, : self.sola_buffer_frame + self.sola_search_frame
             ]

@@ -6,13 +6,13 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-# from fairseq.data.data_utils import compute_mask_indices
+
 from fairseq.utils import index_put
 
 
-# @torch.jit.script
+
 def pad_to_multiple(x, multiple, dim=-1, value=0):
-    # Inspired from https://github.com/lucidrains/local-attention/blob/master/local_attention/local_attention.py#L41
+
     if x is None:
         return None, 0
     tsz = x.size(dim)
@@ -42,7 +42,7 @@ def extract_features(
     if not self.layer_norm_first:
         x = self.layer_norm(x)
 
-    # pad to the sequence length dimension
+
     x, pad_length = pad_to_multiple(x, self.required_seq_len_multiple, dim=-2, value=0)
     if pad_length > 0 and padding_mask is None:
         padding_mask = x.new_zeros((x.size(0), x.size(1)), dtype=torch.bool)
@@ -53,7 +53,7 @@ def extract_features(
         )
     x = F.dropout(x, p=self.dropout, training=self.training)
 
-    # B x T x C -> T x B x C
+
     x = x.transpose(0, 1)
 
     layer_results = []
@@ -73,10 +73,10 @@ def extract_features(
     if r is not None:
         x = r
 
-    # T x B x C -> B x T x C
+
     x = x.transpose(0, 1)
 
-    # undo paddding
+
     if pad_length > 0:
         x = x[:, :-pad_length]
 
@@ -131,7 +131,7 @@ def compute_mask_indices(
     mask = torch.full((bsz, all_sz), False)
 
     all_num_mask = int(
-        # add a random number for probabilistic rounding
+
         mask_prob * all_sz / float(mask_length)
         + torch.rand([1]).item()
     )
@@ -336,7 +336,7 @@ def get_hubert_model(
         return feats
 
     hubert_model.infer = infer
-    # hubert_model.forward=infer
-    # hubert_model.forward
+
+
 
     return hubert_model

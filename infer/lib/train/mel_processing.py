@@ -34,7 +34,7 @@ def spectral_de_normalize_torch(magnitudes):
     return dynamic_range_decompression_torch(magnitudes)
 
 
-# Reusable banks
+
 mel_basis = {}
 hann_window = {}
 
@@ -53,7 +53,7 @@ def spectrogram_torch(y, n_fft, sampling_rate, hop_size, win_size, center=False)
         :: (B, Freq, Frame) - Linear-frequency Linear-amplitude spectrogram
     """
 
-    # Window - Cache if needed
+
     global hann_window
     dtype_device = str(y.dtype) + "_" + str(y.device)
     wnsize_dtype_device = str(win_size) + "_" + dtype_device
@@ -62,7 +62,7 @@ def spectrogram_torch(y, n_fft, sampling_rate, hop_size, win_size, center=False)
             dtype=y.dtype, device=y.device
         )
 
-    # Padding
+
     y = torch.nn.functional.pad(
         y.unsqueeze(1),
         (int((n_fft - hop_size) / 2), int((n_fft - hop_size) / 2)),
@@ -70,7 +70,7 @@ def spectrogram_torch(y, n_fft, sampling_rate, hop_size, win_size, center=False)
     )
     y = y.squeeze(1)
 
-    # Complex Spectrogram :: (B, T) -> (B, Freq, Frame, RealComplex=2)
+
     spec = torch.stft(
         y,
         n_fft,
@@ -84,13 +84,13 @@ def spectrogram_torch(y, n_fft, sampling_rate, hop_size, win_size, center=False)
         return_complex=True,
     )
 
-    # Linear-frequency Linear-amplitude spectrogram :: (B, Freq, Frame, RealComplex=2) -> (B, Freq, Frame)
+
     spec = torch.sqrt(spec.real.pow(2) + spec.imag.pow(2) + 1e-6)
     return spec
 
 
 def spec_to_mel_torch(spec, n_fft, num_mels, sampling_rate, fmin, fmax):
-    # MelBasis - Cache if needed
+
     global mel_basis
     dtype_device = str(spec.dtype) + "_" + str(spec.device)
     fmax_dtype_device = str(fmax) + "_" + dtype_device
@@ -102,7 +102,7 @@ def spec_to_mel_torch(spec, n_fft, num_mels, sampling_rate, fmin, fmax):
             dtype=spec.dtype, device=spec.device
         )
 
-    # Mel-frequency Log-amplitude spectrogram :: (B, Freq=num_mels, Frame)
+
     melspec = torch.matmul(mel_basis[fmax_dtype_device], spec)
     melspec = spectral_normalize_torch(melspec)
     return melspec
@@ -118,10 +118,10 @@ def mel_spectrogram_torch(
     Returns:
         melspec :: (B, Freq, Frame) - Mel-frequency Log-amplitude spectrogram
     """
-    # Linear-frequency Linear-amplitude spectrogram :: (B, T) -> (B, Freq, Frame)
+
     spec = spectrogram_torch(y, n_fft, sampling_rate, hop_size, win_size, center)
 
-    # Mel-frequency Log-amplitude spectrogram :: (B, Freq, Frame) -> (B, Freq=num_mels, Frame)
+
     melspec = spec_to_mel_torch(spec, n_fft, num_mels, sampling_rate, fmin, fmax)
 
     return melspec

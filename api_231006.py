@@ -17,11 +17,11 @@ import threading
 import uvicorn
 import logging
 
-# Initialize the logger
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Define FastAPI app
+
 app = FastAPI()
 
 class GUIConfig:
@@ -30,7 +30,7 @@ class GUIConfig:
         self.index_path: str = ""
         self.pitch: int = 0
         self.samplerate: int = 40000
-        self.block_time: float = 1.0  # s
+        self.block_time: float = 1.0
         self.buffer_num: int = 1
         self.threhold: int = -60
         self.crossfade_time: float = 0.05
@@ -62,18 +62,18 @@ class ConfigData(BaseModel):
 class AudioAPI:
     def __init__(self) -> None:
         self.gui_config = GUIConfig()
-        self.config = None  # Initialize Config object as None
+        self.config = None
         self.flag_vc = False
         self.function = "vc"
         self.delay_time = 0
-        self.rvc = None  # Initialize RVC object as None
+        self.rvc = None
 
     def load(self):
         input_devices, output_devices, _, _ = self.get_devices()
         try:
             with open("configs/config.json", "r", encoding='utf-8') as j:
                 data = json.load(j)
-                data["rmvpe"] = True  # Ensure rmvpe is the only f0method
+                data["rmvpe"] = True
                 if data["sg_input_device"] not in input_devices:
                     data["sg_input_device"] = input_devices[sd.default.device[0]]
                 if data["sg_output_device"] not in output_devices:
@@ -96,7 +96,7 @@ class AudioAPI:
                     "f0method": "rmvpe",
                     "use_jit": False,
                 }
-                data["rmvpe"] = True  # Ensure rmvpe is the only f0method
+                data["rmvpe"] = True
                 json.dump(data, j, ensure_ascii=False)
         return data
 

@@ -106,8 +106,8 @@ class Config:
             cmd_opts.dml,
         )
 
-    # has_mps is only available in nightly pytorch (for now) and MasOS 12.3+.
-    # check `getattr` and try it for compatibility
+
+
     @staticmethod
     def has_mps() -> bool:
         if not torch.backends.mps.is_available():
@@ -180,13 +180,13 @@ class Config:
             self.n_cpu = cpu_count()
 
         if self.is_half:
-            # 6G显存配置
+
             x_pad = 3
             x_query = 10
             x_center = 60
             x_max = 65
         else:
-            # 5G显存配置
+
             x_pad = 1
             x_query = 6
             x_center = 38
@@ -219,7 +219,7 @@ class Config:
                     )
                 except:
                     pass
-            # if self.device != "cpu":
+
             import torch_directml
 
             self.device = torch_directml.device(torch_directml.default_device())

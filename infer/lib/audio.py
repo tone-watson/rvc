@@ -32,10 +32,10 @@ def wav2(i, o, format):
 
 def load_audio(file, sr):
     try:
-        # https://github.com/openai/whisper/blob/main/whisper/audio.py#L26
-        # This launches a subprocess to decode audio while down-mixing and resampling as necessary.
-        # Requires the ffmpeg CLI and `ffmpeg-python` package to be installed.
-        file = clean_path(file)  # 防止小白拷路径头尾带了空格和"和回车
+
+
+
+        file = clean_path(file)
         if os.path.exists(file) == False:
             raise RuntimeError(
                 "You input a wrong audio path that does not exists, please fix it!"
@@ -56,5 +56,5 @@ def load_audio(file, sr):
 def clean_path(path_str):
     if platform.system() == "Windows":
         path_str = path_str.replace("/", "\\")
-    path_str = re.sub(r'[\u202a\u202b\u202c\u202d\u202e]', '', path_str)  # 移除 Unicode 控制字符
+    path_str = re.sub(r'[\u202a\u202b\u202c\u202d\u202e]', '', path_str)
     return path_str.strip(" ").strip('"').strip("\n").strip('"').strip(" ")

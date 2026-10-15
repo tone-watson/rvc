@@ -1,7 +1,7 @@
 import logging
 import os
 
-# os.system("wget -P cvec/ https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/hubert_base.pt")
+
 import gradio as gr
 from dotenv import load_dotenv
 
@@ -147,7 +147,7 @@ with app:
                     f0method0,
                     file_index1,
                     file_index2,
-                    # file_big_npy1,
+
                     index_rate1,
                     filter_radius0,
                     resample_sr0,

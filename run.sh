@@ -8,5 +8,5 @@ if [ ! -x "$rvc_python" ]; then
   echo "RVC Python is unavailable: $rvc_python. Run sh scripts/runtime.sh sync." >&2
   exit 1
 fi
-# Config defaults child preprocess/extract/train commands to sys.executable.
+
 exec "$rvc_python" infer-web.py --port 7861 --noautoopen "$@"

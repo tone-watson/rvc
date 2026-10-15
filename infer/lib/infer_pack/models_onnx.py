@@ -47,7 +47,7 @@ class TextEncoder256(nn.Module):
         self.emb_phone = nn.Linear(256, hidden_channels)
         self.lrelu = nn.LeakyReLU(0.1, inplace=True)
         if f0 == True:
-            self.emb_pitch = nn.Embedding(256, hidden_channels)  # pitch 256
+            self.emb_pitch = nn.Embedding(256, hidden_channels)
         self.encoder = attentions.Encoder(
             hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout
         )
@@ -58,9 +58,9 @@ class TextEncoder256(nn.Module):
             x = self.emb_phone(phone)
         else:
             x = self.emb_phone(phone) + self.emb_pitch(pitch)
-        x = x * math.sqrt(self.hidden_channels)  # [b, t, h]
+        x = x * math.sqrt(self.hidden_channels)
         x = self.lrelu(x)
-        x = torch.transpose(x, 1, -1)  # [b, h, t]
+        x = torch.transpose(x, 1, -1)
         x_mask = torch.unsqueeze(commons.sequence_mask(lengths, x.size(2)), 1).to(
             x.dtype
         )
@@ -94,7 +94,7 @@ class TextEncoder768(nn.Module):
         self.emb_phone = nn.Linear(768, hidden_channels)
         self.lrelu = nn.LeakyReLU(0.1, inplace=True)
         if f0 == True:
-            self.emb_pitch = nn.Embedding(256, hidden_channels)  # pitch 256
+            self.emb_pitch = nn.Embedding(256, hidden_channels)
         self.encoder = attentions.Encoder(
             hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout
         )
@@ -105,9 +105,9 @@ class TextEncoder768(nn.Module):
             x = self.emb_phone(phone)
         else:
             x = self.emb_phone(phone) + self.emb_pitch(pitch)
-        x = x * math.sqrt(self.hidden_channels)  # [b, t, h]
+        x = x * math.sqrt(self.hidden_channels)
         x = self.lrelu(x)
-        x = torch.transpose(x, 1, -1)  # [b, h, t]
+        x = torch.transpose(x, 1, -1)
         x_mask = torch.unsqueeze(commons.sequence_mask(lengths, x.size(2)), 1).to(
             x.dtype
         )
@@ -322,10 +322,10 @@ class SineGen(torch.nn.Module):
         self.voiced_threshold = voiced_threshold
 
     def _f02uv(self, f0):
-        # generate uv signal
+
         uv = torch.ones_like(f0)
         uv = uv * (f0 > self.voiced_threshold)
-        if uv.device.type == "privateuseone":  # for DirectML
+        if uv.device.type == "privateuseone":
             uv = uv.float()
         return uv
     
@@ -399,12 +399,12 @@ class SourceModuleHnNSF(torch.nn.Module):
         self.sine_amp = sine_amp
         self.noise_std = add_noise_std
         self.is_half = is_half
-        # to produce sine waveforms
+
         self.l_sin_gen = SineGen(
             sampling_rate, harmonic_num, sine_amp, add_noise_std, voiced_threshod
         )
 
-        # to merge source harmonics into a single excitation
+
         self.l_linear = torch.nn.Linear(harmonic_num + 1, 1)
         self.l_tanh = torch.nn.Tanh()
 
@@ -413,7 +413,7 @@ class SourceModuleHnNSF(torch.nn.Module):
         if self.is_half:
             sine_wavs = sine_wavs.half()
         sine_merge = self.l_tanh(self.l_linear(sine_wavs))
-        return sine_merge, None, None  # noise, uv
+        return sine_merge, None, None
 
 
 class GeneratorNSF(torch.nn.Module):
@@ -569,7 +569,7 @@ class SynthesizerTrnMsNSFsidM(nn.Module):
         self.upsample_kernel_sizes = upsample_kernel_sizes
         self.segment_size = segment_size
         self.gin_channels = gin_channels
-        # self.hop_length = hop_length#
+
         self.spk_embed_dim = spk_embed_dim
         if version == "v1":
             self.enc_p = TextEncoder256(
@@ -633,11 +633,11 @@ class SynthesizerTrnMsNSFsidM(nn.Module):
         self.speaker_map = self.speaker_map.unsqueeze(0)
 
     def forward(self, phone, phone_lengths, pitch, nsff0, g, rnd, max_len=None):
-        if self.speaker_map is not None:  # [N, S]  *  [S, B, 1, H]
-            g = g.reshape((g.shape[0], g.shape[1], 1, 1, 1))  # [N, S, B, 1, 1]
-            g = g * self.speaker_map  # [N, S, B, 1, H]
-            g = torch.sum(g, dim=1)  # [N, 1, B, 1, H]
-            g = g.transpose(0, -1).transpose(0, -2).squeeze(0)  # [B, H, N]
+        if self.speaker_map is not None:
+            g = g.reshape((g.shape[0], g.shape[1], 1, 1, 1))
+            g = g * self.speaker_map
+            g = torch.sum(g, dim=1)
+            g = g.transpose(0, -1).transpose(0, -2).squeeze(0)
         else:
             g = g.unsqueeze(0)
             g = self.emb_g(g).transpose(1, 2)
@@ -653,7 +653,7 @@ class MultiPeriodDiscriminator(torch.nn.Module):
     def __init__(self, use_spectral_norm=False):
         super(MultiPeriodDiscriminator, self).__init__()
         periods = [2, 3, 5, 7, 11, 17]
-        # periods = [3, 5, 7, 11, 17, 23, 37]
+
 
         discs = [DiscriminatorS(use_spectral_norm=use_spectral_norm)]
         discs = discs + [
@@ -662,15 +662,15 @@ class MultiPeriodDiscriminator(torch.nn.Module):
         self.discriminators = nn.ModuleList(discs)
 
     def forward(self, y, y_hat):
-        y_d_rs = []  #
+        y_d_rs = []
         y_d_gs = []
         fmap_rs = []
         fmap_gs = []
         for i, d in enumerate(self.discriminators):
             y_d_r, fmap_r = d(y)
             y_d_g, fmap_g = d(y_hat)
-            # for j in range(len(fmap_r)):
-            #     print(i,j,y.shape,y_hat.shape,fmap_r[j].shape,fmap_g[j].shape)
+
+
             y_d_rs.append(y_d_r)
             y_d_gs.append(y_d_g)
             fmap_rs.append(fmap_r)
@@ -682,7 +682,7 @@ class MultiPeriodDiscriminator(torch.nn.Module):
 class MultiPeriodDiscriminatorV2(torch.nn.Module):
     def __init__(self, use_spectral_norm=False):
         super(MultiPeriodDiscriminatorV2, self).__init__()
-        # periods = [2, 3, 5, 7, 11, 17]
+
         periods = [2, 3, 5, 7, 11, 17, 23, 37]
 
         discs = [DiscriminatorS(use_spectral_norm=use_spectral_norm)]
@@ -692,15 +692,15 @@ class MultiPeriodDiscriminatorV2(torch.nn.Module):
         self.discriminators = nn.ModuleList(discs)
 
     def forward(self, y, y_hat):
-        y_d_rs = []  #
+        y_d_rs = []
         y_d_gs = []
         fmap_rs = []
         fmap_gs = []
         for i, d in enumerate(self.discriminators):
             y_d_r, fmap_r = d(y)
             y_d_g, fmap_g = d(y_hat)
-            # for j in range(len(fmap_r)):
-            #     print(i,j,y.shape,y_hat.shape,fmap_r[j].shape,fmap_g[j].shape)
+
+
             y_d_rs.append(y_d_r)
             y_d_gs.append(y_d_g)
             fmap_rs.append(fmap_r)
@@ -799,9 +799,9 @@ class DiscriminatorP(torch.nn.Module):
     def forward(self, x):
         fmap = []
 
-        # 1d to 2d
+
         b, c, t = x.shape
-        if t % self.period != 0:  # pad first
+        if t % self.period != 0:
             n_pad = self.period - (t % self.period)
             x = F.pad(x, (0, n_pad), "reflect")
             t = t + n_pad
