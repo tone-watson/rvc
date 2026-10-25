@@ -113,6 +113,10 @@ sh scripts/runtime.sh sync
 ./run.sh
 ```
 
+The Farm API's Morph voice conversion calls this checkout through the
+`infer-api.py` sidecar (started by the API worker, not by systemd); see
+[docs/farm-service.md](docs/farm-service.md).
+
 ## 其他预模型准备
 RVC需要其他一些预模型来推理和训练。
 
