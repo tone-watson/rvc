@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v1.2.0 - 2026-10-25
+### CHANGED:
+- Add the Farm RVC sidecar service and its inference package
+
+
 ## v1.1.3 - 2026-10-15
 ### CHANGED:
 - Remove explanatory code comments while preserving documentation and directives
