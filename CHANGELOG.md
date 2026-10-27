@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v1.2.1 - 2026-10-27
+### CHANGED:
+- Update alias path in farm.json
+
+
 ## v1.2.0 - 2026-10-25
 ### CHANGED:
 - Add the Farm RVC sidecar service and its inference package
